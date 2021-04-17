@@ -1,0 +1,97 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: 7000
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 100
+      min-spare: 10
+
+db:
+  username: ${DB_WAREHOUSE_USERNAME:admin}
+  password: ${DB_WAREHOUSE_USERNAME:admin}
+  port: ${DB_WAREHOUSE_PORT:5434}
+  host: ${DB_WAREHOUSE_HOST:localhost}
+  schema: ${DB_WAREHOUSE_SCHEMA:postgres}
+  endpoint: postgresql://${db.host}:${db.port}/${db.schema}
+
+
+logging:
+  level:
+    root: INFO
+#    kafka.*: WARN
+#    org.springframework.*: INFO
+#    org.neo4j.*: INFO
+#    org.apache.kafka.*: WARN
+#    
+
+spring:
+  application:
+    name: warehouse-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+  datasource:
+    username: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    hikari:
+      pool-name: db_warehouse_pool
+      connection-timeout: 5000
+      maximum-pool-size: 10     
+  flyway:
+    user: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    locations: "classpath:/db/migration,classpath:/dev/db/migration"
+  cloud:
+    stream:
+      source: productProducer;stockProducer
+      bindings:
+        productProducer-out-0:
+          destination: products
+          producer:
+            auto-startup: true
+            required-groups: catalogsGroup
+        stockProducer-out-0:
+          destination: stocks
+          producer:
+            auto-startup: true
+            required-groups: catalogsGroup
+      rabbit:
+        bindings:
+          productProducer-out-0:
+            producer:
+              transacted: true
+          stockProducer-out-0:
+            producer:
+              transacted: true
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USERNAME:admin}
+    password: ${RABBIT_PASSWORD:admin}
+    connection-timeout: 15s
+  profiles:
+    active: dev
+---
+spring:
+  config:
+    activate:
+      on-profile: dev  
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
