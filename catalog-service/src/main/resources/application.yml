@@ -1,0 +1,65 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: ${CATALOG_PORT:7010}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 100
+      min-spare: 10
+
+db:
+  port: ${DB_CATALOG_PORT:9200}
+  host: ${DB_CATALOG_HOST:localhost}
+  endpoint: ${db.host}:${db.port}
+
+
+logging:
+  level:
+    root: INFO
+
+spring:
+  application:
+    name: catalog-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s  
+  cloud:
+    function:
+      definition: productConsumer;stockConsumer
+    stream:     
+      bindings:
+        productConsumer-in-0:
+          destination: products
+          group: catalogsGroup
+        stockConsumer-in-0:
+          destination: stocks
+          group: catalogsGroup          
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USERNAME:admin}
+    password: ${RABBIT_PASSWORD:admin}
+    connection-timeout: 15s
+  profiles:
+    active: dev
+---
+spring:
+  config:
+    activate:
+      on-profile: dev  
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
