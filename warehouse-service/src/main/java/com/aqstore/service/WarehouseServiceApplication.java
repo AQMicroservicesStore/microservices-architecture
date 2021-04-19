@@ -12,4 +12,6 @@ public class WarehouseServiceApplication {
 		SpringApplication.run(WarehouseServiceApplication.class, args);
 	}
 
+
+	
 }

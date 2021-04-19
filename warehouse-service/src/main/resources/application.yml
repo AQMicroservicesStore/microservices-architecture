@@ -32,6 +32,15 @@ spring:
     name: warehouse-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
+  profiles:
+    active: dev
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+           issuer-uri: http://localhost:8090/auth/realms/aqstore-spring-realm
+    
   datasource:
     username: ${db.username}
     password: ${db.password}
@@ -45,6 +54,7 @@ spring:
     password: ${db.password}
     url: jdbc:${db.endpoint}
     locations: "classpath:/db/migration,classpath:/dev/db/migration"
+    
   cloud:
     stream:
       source: productProducer;stockProducer
@@ -59,22 +69,12 @@ spring:
           producer:
             auto-startup: true
             required-groups: catalogsGroup
-      rabbit:
-        bindings:
-          productProducer-out-0:
-            producer:
-              transacted: true
-          stockProducer-out-0:
-            producer:
-              transacted: true
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
     connection-timeout: 15s
-  profiles:
-    active: dev
 ---
 spring:
   config:

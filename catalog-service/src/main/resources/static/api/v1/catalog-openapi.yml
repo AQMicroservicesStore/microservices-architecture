@@ -1,6 +1,7 @@
 openapi: "3.0.2"
 info:
-  title: aqstore-catalog-service
+  title: Catalog Service
+  description: A service used to retrieve products and shipping informations
   version: 1.0.0
   contact:
     name: API SUPPORT
@@ -9,7 +10,31 @@ info:
     name: MIT License
     url: https://mit-license.org/
 servers:
-  - url: http://localhost:7010/catalog-service/api/v1
+- url: http://{basepath}:{port}/{prefix}/catalog/api/v1
+  description: Gateway Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '9000'
+      default: '9000'
+    prefix:
+      enum:
+        - public
+        - private
+      default: private
+- url: http://{basepath}:{port}/catalog-service/api/v1
+  description: Internal Microservices Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '7010'
+        - '7011'
+        - '7012'
+      default: '7010'
 
 
 components:
@@ -246,9 +271,13 @@ components:
           items:
             $ref: '#/components/schemas/CatalogShippingMethod'
         
-          
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
 
-
+security: 
+  - BearerAuth: []          
 
 paths:
   /shippings:

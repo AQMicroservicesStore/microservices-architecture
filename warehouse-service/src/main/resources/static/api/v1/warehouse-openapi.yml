@@ -1,6 +1,7 @@
 openapi: "3.0.2"
 info:
-  title: aqstore-warehouse-service
+  title: Warehouse Service
+  description: A service to handle the creation of products by administrator
   version: 1.0.0
   contact:
     name: API SUPPORT
@@ -8,8 +9,34 @@ info:
   license:
     name: MIT License
     url: https://mit-license.org/
+
 servers:
-  - url: http://localhost:7000/warehouse-service/api/v1
+- url: http://{basepath}:{port}/{prefix}/warehouse/api/v1
+  description: Gateway Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '9000'
+      default: '9000'
+    prefix:
+      enum:
+        - public
+        - private
+      default: private
+- url: http://{basepath}:{port}/warehouse-service/api/v1
+  description: Internal Microservices Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '7000'
+        - '7001'
+        - '7002'
+      default: '7000'
+
 
 
 components:
@@ -38,8 +65,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-  
-  
+
   schemas:
     timestamp:
       type: string
@@ -182,6 +208,14 @@ components:
         quantity: 20
         purchaseCost: 45
         priceToSell: 70
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security: 
+  - BearerAuth: []
 
 paths:
   /product:

@@ -20,10 +20,19 @@ logging:
     root: INFO
 
 spring:
+  profiles:
+    active: dev
   application:
     name: catalog-service
   lifecycle:
-    timeout-per-shutdown-phase: 15s  
+    timeout-per-shutdown-phase: 15s     
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+           issuer-uri: http://localhost:8090/auth/realms/aqstore-spring-realm
+          
   cloud:
     function:
       definition: productConsumer;stockConsumer
@@ -34,15 +43,14 @@ spring:
           group: catalogsGroup
         stockConsumer-in-0:
           destination: stocks
-          group: catalogsGroup          
+          group: catalogsGroup    
+                
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
     connection-timeout: 15s
-  profiles:
-    active: dev
 ---
 spring:
   config:

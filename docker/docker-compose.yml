@@ -1,0 +1,73 @@
+version: "3.8"
+networks:
+  aqstore-network:
+    driver: bridge
+volumes:
+  postgres_data:
+      driver: local
+services:
+  aqstore-db-postgres:
+    image: "postgres:13"
+    container_name: aqstore_postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5434:5432
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=aqstore
+    networks:
+      - aqstore-network
+  
+  aqstore-rabbitmq-broker:
+    image: rabbitmq:3-management
+    container_name: aqstore_rabbit
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    networks:
+      - aqstore-network 
+
+  aqstore-elasticsearch:
+    image: elasticsearch:7.8.0
+    container_name: aqstore_elasticsearch
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    environment:
+      - discovery.type=single-node
+    networks:
+      - aqstore-network  
+  aqstore-keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: aqstore_keycloak
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: aqstore-db-postgres
+      DB_DATABASE: aqstore
+      DB_USER: admin
+      DB_PASSWORD: admin
+      DB_SCHEMA: public
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+        # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
+        #JDBC_PARAMS: "ssl=true"
+    ports:
+      - 8090:8080
+    depends_on:
+      - aqstore-db-postgres
+    networks:
+      - aqstore-network
+  aqstore-redis:
+    container_name: aqstore_redis
+    image: redis:4.0
+    container_name: app_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - aqstore-network
+  

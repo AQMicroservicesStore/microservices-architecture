@@ -1,0 +1,101 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: ${CATALOG_PORT:9000}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 100
+      min-spare: 10
+
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay
+      routes:
+        - id: catalog-service-public
+          uri: http://127.0.0.1:7010
+          predicates:
+            - Path=/public/catalog/**      
+          filters:
+           - SaveSession
+           - RewritePath= /public/catalog(?<segment>/?.*), /catalog-service$\{segment}         
+           - RemoveRequestHeader=Cookie
+        - id: catalog-service-private
+          uri: http://127.0.0.1:7010
+          predicates:
+            - Path=/private/catalog/**           
+          filters:
+           - RewritePath= /private/catalog(?<segment>/?.*), /catalog-service$\{segment}         
+           - RemoveRequestHeader=Cookie      
+        - id: warehouse-service-public
+          uri: http://127.0.0.1:7000
+          predicates:
+            - Path=/public/warehouse/**      
+          filters:
+           - RewritePath= /public/warehouse(?<segment>/?.*), /warehouse-service$\{segment}         
+           - RemoveRequestHeader=Cookie
+        - id: warehouse-service-private
+          uri: http://127.0.0.1:7000
+          predicates:
+            - Path=/private/warehouse/**           
+          filters:
+           - SaveSession
+           - RewritePath= /private/warehouse(?<segment>/?.*), /warehouse-service$\{segment}         
+           - RemoveRequestHeader=Cookie        
+  redis:
+    connect-timeout: 30s
+    host: localhost
+    port: 6379
+    timeout: 500ms
+  session:
+    store-type: redis
+    timeout: 10m
+    redis:
+      namespace: library:edge
+
+#        registration:
+#          keycloak:
+#            client-id: oauth2-login
+#            client-secret: 4d8a570b-defa-4e6a-a5d2-0d46387ff776
+#            client-name: Keycloak
+#            scope: openid,profile,email,roles,role
+#        provider:
+#          keycloak:
+#            issuer-uri: http://localhost:8180/auth/realms/public-library
+
+
+  security:
+    oauth2:
+      client:
+        provider:
+          oidc:
+           # issuer-uri: http://localhost:8090/auth/realms/aqstore-spring-realm
+           token-uri: http://localhost:8090/auth/realms/aqstore-spring-realm/protocol/openid-connect/token
+           authorization-uri: http://localhost:8090/auth/realms/aqstore-spring-realm/protocol/openid-connect/auth
+           user-info-uri: http://localhost:8090/auth/realms/aqstore-spring-realm/protocol/openid-connect/userinfo
+           user-name-attribute: preferred_username
+        registration:
+          oidc:
+            provider: oidc
+            client-id: aqstore-api-gateway
+            client-secret: 0b9921c8-c09d-4736-9ed1-7439ba2fa6fb
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
+
+
+logging.level:
+  '[org.springframework.cloud.gateway]': DEBUG
+  '[org.springframework.security]': DEBUG
+  '[org.springframework.web.reactive.function.client]': TRACE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
