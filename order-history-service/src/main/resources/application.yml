@@ -1,0 +1,71 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: ${ORDER_HISTORY_SERVICE_PORT:7040}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 100
+      min-spare: 10
+
+db:
+  port: ${DB_ORDER_HISTORY_PORT:9200}
+  host: ${DB_ORDER_HISTORY_HOST:localhost}
+  endpoint: ${db.host}:${db.port}
+
+
+logging:
+  level:
+    root: INFO
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: order-history-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s     
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+           issuer-uri: http://localhost:8090/auth/realms/aqstore-spring-realm
+          
+  cloud:
+    function:
+      definition: orderHistoryConsumer
+    stream:     
+      bindings:
+        orderHistoryConsumer-in-0:
+          destination: order.history
+          group: orderHistoryGroup
+  
+                
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USERNAME:admin}
+    password: ${RABBIT_PASSWORD:admin}
+    connection-timeout: 15s
+---
+spring:
+  config:
+    activate:
+      on-profile: dev  
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes

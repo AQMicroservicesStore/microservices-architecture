@@ -1,7 +1,7 @@
 server:
   servlet:
     context-path: /${spring.application.name}
-  port: 7000
+  port: ${WAREHOUSE_SERVICE_PORT:7000}
   shutdown: graceful
   tomcat:
     connection-timeout: 5s
@@ -10,11 +10,11 @@ server:
       min-spare: 10
 
 db:
-  username: ${DB_WAREHOUSE_USERNAME:admin}
-  password: ${DB_WAREHOUSE_USERNAME:admin}
+  username: ${DB_WAREHOUSE_USERNAME:aqstore_warehouse}
+  password: ${DB_WAREHOUSE_USERNAME:aqstore_warehouse}
   port: ${DB_WAREHOUSE_PORT:5434}
   host: ${DB_WAREHOUSE_HOST:localhost}
-  schema: ${DB_WAREHOUSE_SCHEMA:postgres}
+  schema: ${DB_WAREHOUSE_SCHEMA:aqstore_warehouse}
   endpoint: postgresql://${db.host}:${db.port}/${db.schema}
 
 
@@ -32,8 +32,6 @@ spring:
     name: warehouse-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
-  profiles:
-    active: dev
     
   security:
     oauth2:
@@ -53,45 +51,30 @@ spring:
     user: ${db.username}
     password: ${db.password}
     url: jdbc:${db.endpoint}
-    locations: "classpath:/db/migration,classpath:/dev/db/migration"
+    locations: "classpath:/db/migration"
     
   cloud:
     stream:
-      source: productProducer;stockProducer
+      function: 
+        definition: orderCheckItems;
+        
+      source: productProducer ##cqrs producers
       bindings:
-        productProducer-out-0:
+        productProducer-out-0:  ##spring naming convention -> sourceName-
           destination: products
           producer:
             auto-startup: true
             required-groups: catalogsGroup
-        stockProducer-out-0:
-          destination: stocks
-          producer:
-            auto-startup: true
-            required-groups: catalogsGroup
+        orderCheckItems-in-0:
+          destination: order.items
+          group: warehouseGroup
+        orderCheckItems-out-0:
+          destination: order.saga
+ 
+ 
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
     connection-timeout: 15s
----
-spring:
-  config:
-    activate:
-      on-profile: dev  
----
-spring:
-  config:
-    activate:
-      on-profile: docker
----
-spring:
-  config:
-    activate:
-      on-profile: test
----
-spring:
-  config:
-    activate:
-      on-profile: kubernetes

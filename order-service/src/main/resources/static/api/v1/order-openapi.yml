@@ -1,0 +1,274 @@
+openapi: "3.0.2"
+info:
+  title: Order Service
+  description: A service to handle the orders
+  version: 1.0.0
+  contact:
+    name: API SUPPORT
+    email: apisupport@example.com
+  license:
+    name: MIT License
+    url: https://mit-license.org/
+
+servers:
+- url: http://{basepath}:{port}/order-service/api/v1
+  description: Internal Microservices Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '7030'
+        - '7031'
+        - '7032'
+      default: '7030'
+- url: http://{basepath}:{port}/{prefix}/order/api/v1
+  description: Gateway Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '9000'
+      default: '9000'
+    prefix:
+      enum:
+        - public
+        - private
+      default: private
+
+
+
+
+components:
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    GenericError:
+      description: Generic Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    id_int64Unsigned:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 9223372036854775807
+      readOnly: true
+    int16Unsigned:
+      type: integer
+      format: int16
+      minimum: 0
+      maximum: 32767
+    floatPrice:
+      description: price in float
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1000
+    timestamp:
+      type: string
+      format: date-time
+      example: "2021-01-30T08:30:00Z"
+    safetextName:
+      description: Safe text for Name
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 50
+    safetextMessages:
+      description: Safe text for Description
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 100
+    Error:
+      type: object
+      additionalProperties: false
+      description: Error Details
+      properties:
+        errorCode:
+          type: string
+          pattern: '^[a-zA-Z0-9]{4}$'
+          minLength: 4
+          maxLength: 4
+        errors:
+          type: array
+          items:
+              $ref: '#/components/schemas/safetextMessages'
+        datetime:
+          $ref: '#/components/schemas/timestamp'
+      required:
+        - errorCode
+        - errors
+        - datetime
+      example:
+        code: WS01
+        errors: 
+            - Generic Error
+        datetime: "2021-01-30T08:30:00Z"
+    OrderStatus:
+      type: string
+      description: Type of a book
+      enum:
+        - PENDING
+        - WAITING_USER_ADDRESS
+        - WAIT_PAYMENT
+        - WAIT_SHIPPING
+        - WAIT_DELIVERY
+        - DELIVERED
+        - ERROR
+      example: PENDING  
+    OrderItem:
+      type: object
+      additionalProperties: false
+      description: Order's Item
+      properties:
+        itemId:
+            $ref: '#/components/schemas/id_int64Unsigned'
+        quantity:
+            $ref: '#/components/schemas/int16Unsigned'
+      required:
+        - itemId
+        - quantity     
+    OrderRequest:
+      type: object
+      additionalProperties: false
+      description: Order's Object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+      required:
+        - items
+      example:
+        items: 
+          - itemId: 22
+            quantity: 2
+          - itemId: 25
+            quantity: 1
+    
+    OrderResponse:
+      type: object
+      additionalProperties: false
+      description: User Address
+      properties:
+        idOrder:
+          $ref: '#/components/schemas/id_int64Unsigned'
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        statusDescription:
+          $ref: '#/components/schemas/safetextMessages'
+        lastUpdate:
+          $ref: '#/components/schemas/timestamp'
+        idUser:
+          $ref: '#/components/schemas/safetextName'
+        orderPrice:
+          $ref: '#/components/schemas/floatPrice'
+        paymentId:
+          $ref: '#/components/schemas/id_int64Unsigned'
+        deliveryId:
+            $ref: '#/components/schemas/id_int64Unsigned'
+      required:
+        - idOrder
+        - status
+        - statusDescription
+        - lastUpdate
+        - idUser
+      example:
+        idOrder: 1
+        status: PENDING
+        statusDescription: description
+        lastUpdate: "2021-01-30T08:30:00Z"
+        idUser: test
+        orderPrice: null,
+        paymentId: null,
+        deliveryId: null
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security: 
+  - BearerAuth: []
+
+paths:
+  /order:
+    post:
+      summary: Add new Order
+      operationId: addOrder
+      tags:
+        - Order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+        required: true
+        x-codegen-request-body-name: body
+      responses:
+        200:
+          description: A created Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+  /order/{orderId}:
+    get:
+      operationId: getOrderById
+      summary: get Order by id
+      tags:
+          - Order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: the identify of the order
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned'  
+      responses:
+        200:
+          description: The Order's info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+   
+    

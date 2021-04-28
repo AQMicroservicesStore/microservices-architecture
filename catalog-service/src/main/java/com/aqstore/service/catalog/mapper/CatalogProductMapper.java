@@ -9,9 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import com.aqstore.service.catalog.CatalogExceptionType;
-import com.aqstore.service.catalog.event.ProductEvent;
-import com.aqstore.service.catalog.event.StockEvent;
 import com.aqstore.service.catalog.persistence.entity.CatalogProduct;
+import com.aqstore.service.event.payload.ProductEvent;
 import com.aqstore.service.exception.AQStoreExceptionHandler;
 import com.aqstore.service.openapi.model.ApiCatalogProductDto;
 import com.aqstore.service.openapi.model.ApiCatalogProductsDto;
@@ -37,18 +36,6 @@ public interface CatalogProductMapper  {
 	ApiCatalogProductDto toDto(CatalogProduct catalogProduct);
 
 
-
-	@Mapping(target = "productId", source="productId")
-	@Mapping(target = "lastModifiedDate", source = "lastModifiedDate",  qualifiedByName = {"mapperConverter","longToLocalDateTime"})
-	@Mapping(target = "price", source = "priceToSell")
-	@Mapping(target = "version", ignore = true)
-	@Mapping(target = "createdDate", ignore = true)
-	@Mapping(target = "name", ignore = true)
-	@Mapping(target = "type", ignore = true)
-	@Mapping(target = "brand", ignore = true)
-	@Mapping(target = "weight", ignore = true)
-	@Mapping(target = "description", ignore = true)
-	CatalogProduct toEntity(StockEvent s);
 
 	
 	void updateEntity(@MappingTarget CatalogProduct toUpdate, CatalogProduct request);

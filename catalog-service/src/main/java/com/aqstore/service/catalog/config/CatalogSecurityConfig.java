@@ -37,7 +37,8 @@ public class CatalogSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	
 	private static final String[] ALLOWED_ROLES = {
-			"CATALOG_READER"
+			"CUSTOMER",
+			"ADMINISTRATOR"
 	};
 
 	

@@ -1,7 +1,7 @@
 server:
   servlet:
     context-path: /${spring.application.name}
-  port: ${CATALOG_PORT:7010}
+  port: ${CATALOG_SERVICE_PORT:7010}
   shutdown: graceful
   tomcat:
     connection-timeout: 5s
@@ -35,16 +35,13 @@ spring:
           
   cloud:
     function:
-      definition: productConsumer;stockConsumer
+      definition: productConsumer
     stream:     
       bindings:
         productConsumer-in-0:
           destination: products
           group: catalogsGroup
-        stockConsumer-in-0:
-          destination: stocks
-          group: catalogsGroup    
-                
+
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}

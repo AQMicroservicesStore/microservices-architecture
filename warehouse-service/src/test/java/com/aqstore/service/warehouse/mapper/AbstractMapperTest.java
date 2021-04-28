@@ -1,6 +1,7 @@
 package com.aqstore.service.warehouse.mapper;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,12 +27,13 @@ public class AbstractMapperTest {
 	protected final String PNAME = "pname";
 	protected final String PDESCRIPTION = "pdesc";
 	protected final String PBRAND = "pbrand";
+	protected final UUID STOCKID=  UUID.randomUUID();
 	protected final ApiProductTypeDto TYPE = ApiProductTypeDto.DOMOTIC;
 
 	
-	protected ApiStockDto getAPIStockDto(boolean productIdPresent) {
+	protected ApiStockDto getAPIStockDto(boolean idPresent) {
 		return new ApiStockDto()
-		.productId(productIdPresent? PRODUCT_ID : null)
+//		.productId(idPresent? PRODUCT_ID : null)
 		.purchaseCost(COST)
 		.priceToSell(PRICE)
 		.quantity(QUANTITY);
@@ -39,7 +41,7 @@ public class AbstractMapperTest {
 	
 	protected Stock getStockEntity() {
 		return Stock.builder()
-				.productId(PRODUCT_ID)
+//				.productId(PRODUCT_ID)
 				.createdDate(DATE.toEpochMilli())
 				.lastModifiedDate(DATE.toEpochMilli())
 				.priceToSell(PRICE)
@@ -69,6 +71,7 @@ public class AbstractMapperTest {
 				.weight(WEIGHT)
 				.createdDate(DATE.toEpochMilli())
 				.lastModifiedDate(DATE.toEpochMilli())
+				.stock(getStockEntity())
 				.build();
 	}
 	

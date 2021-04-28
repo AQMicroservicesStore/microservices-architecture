@@ -11,6 +11,17 @@ info:
     url: https://mit-license.org/
 
 servers:
+- url: http://{basepath}:{port}/warehouse-service/api/v1
+  description: Internal Microservices Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '7000'
+        - '7001'
+        - '7002'
+      default: '7000'
 - url: http://{basepath}:{port}/{prefix}/warehouse/api/v1
   description: Gateway Api Server
   variables:
@@ -25,17 +36,6 @@ servers:
         - public
         - private
       default: private
-- url: http://{basepath}:{port}/warehouse-service/api/v1
-  description: Internal Microservices Api Server
-  variables:
-    basepath:
-      default: localhost
-    port:
-      enum:
-        - '7000'
-        - '7001'
-        - '7002'
-      default: '7000'
 
 
 
@@ -67,6 +67,9 @@ components:
             $ref: '#/components/schemas/Error'
 
   schemas:
+    id_uuid:
+        type: string
+        format: uuid
     timestamp:
       type: string
       format: date-time
@@ -180,7 +183,7 @@ components:
         weight: 10
         brand: Sony
         stock:
-          productId: 1
+          stockId: 1
           quantity: 0
           purchaseCost: 0
           priceToSell: 0
@@ -189,8 +192,6 @@ components:
       additionalProperties: false
       description: Stock of the product
       properties:
-        productId:
-          $ref: '#/components/schemas/id_int64Unsigned'
         quantity:
           $ref: '#/components/schemas/int16Unsigned'
         purchaseCost:
@@ -204,7 +205,7 @@ components:
         - price
         - priceToSell
       example:
-        productId: 5
+        stockId: 5
         quantity: 20
         purchaseCost: 45
         priceToSell: 70
@@ -275,40 +276,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         500:
           $ref: '#/components/responses/GenericError'
-    put:
-      operationId: updateProduct
-      summary: Updates  Product's info
-      tags:
-        - Product
-      parameters:
-        - name: productId
-          in: path
-          required: true
-          description: the identify of product to update
-          schema:
-            $ref: '#/components/schemas/id_int64Unsigned'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Product'
-        required: true
-        x-codegen-request-body-name: body
-      responses:
-        200:
-          description: The Product updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Product'
-        400:
-          $ref: '#/components/responses/BadRequest'
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-        500:
-          $ref: '#/components/responses/GenericError'   
   /stock/{productId}:
     get:
       operationId: getStock
@@ -319,12 +286,12 @@ paths:
         - name: productId
           in: path
           required: true
-          description: the identify of product related the stock
+          description: the identify of the stock to retrieve
           schema:
             $ref: '#/components/schemas/id_int64Unsigned'
       responses:
         200:
-          description: The Stock updated
+          description: The Stock element
           content:
             application/json:
               schema:
@@ -346,7 +313,7 @@ paths:
         - name: productId
           in: path
           required: true
-          description: the identify of product related the stock
+          description: the identify of stock to update
           schema:
             $ref: '#/components/schemas/id_int64Unsigned'
       requestBody:

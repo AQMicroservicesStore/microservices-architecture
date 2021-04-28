@@ -1,0 +1,72 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: ${ACCOUNT_SERVICE_PORT:7020}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 100
+      min-spare: 10
+
+db:
+  username: ${DB_ACCOUNT_USERNAME:aqstore_account}
+  password: ${DB_ACCOUNT_USERNAME:aqstore_account}
+  port: ${DB_ACCOUNT_PORT:5434}
+  host: ${DB_ACCOUNT_HOST:localhost}
+  schema: ${DB_ACCOUNT_SCHEMA:aqstore_account}
+  endpoint: postgresql://${db.host}:${db.port}/${db.schema}
+
+
+logging:
+  level:
+    root: INFO
+#    kafka.*: WARN
+#    org.springframework.*: INFO
+#    org.neo4j.*: INFO
+#    org.apache.kafka.*: WARN
+#    
+
+spring:
+  application:
+    name: account-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+           issuer-uri: http://localhost:8090/auth/realms/aqstore-spring-realm
+    
+  datasource:
+    username: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    hikari:
+      pool-name: db_account_pool
+      connection-timeout: 5000
+      maximum-pool-size: 10     
+  flyway:
+    user: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    locations: "classpath:/db/migration,classpath:/dev/db/migration"
+    
+  cloud:
+    stream:
+      function: 
+        definition: orderCheckAddress;
+      bindings:
+        orderCheckAddress-in-0:
+          destination: order.address
+          group: accountGroup
+        orderCheckAddress-out-0:
+          destination: order.saga
+          
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USERNAME:admin}
+    password: ${RABBIT_PASSWORD:admin}
+    connection-timeout: 15s

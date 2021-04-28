@@ -1,0 +1,368 @@
+openapi: "3.0.2"
+info:
+  title: aqstore-warehouse-service
+  version: 1.0.0
+  contact:
+    name: API SUPPORT
+    email: apisupport@example.com
+  license:
+    name: MIT License
+    url: https://mit-license.org/
+servers:
+  - url: https://localhost:8050/warehouse/api/v1
+
+
+components:
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    GenericError:
+      description: Generic Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  
+  
+  schemas:
+    timestamp:
+      type: string
+      format: date-time
+      example: "2021-01-30T08:30:00Z"
+    int16Unsigned:
+      type: integer
+      format: int16
+      minimum: 0
+      maximum: 32767
+    id_int64Unsigned:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 9223372036854775807
+      readOnly: true
+    floatPrice:
+      description: price in float
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1000
+    intWeight:
+      description: weight size
+      type: integer
+      format: int16
+      minimum: 1
+      maximum: 40
+    safetextName:
+      description: Safe text for Name
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 50
+    safetextMessages:
+      description: Safe text for Description
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 100
+    Error:
+      type: object
+      additionalProperties: false
+      description: Error Details
+      properties:
+        errorCode:
+          type: string
+          pattern: '^[0-9]{4}$'
+          minLength: 4
+          maxLength: 4
+        errorMessage:
+          $ref: '#/components/schemas/safetextMessages'
+        datetime:
+          $ref: '#/components/schemas/timestamp'
+      required:
+        - errorCode
+        - errorMessage
+        - datetime
+      example:
+        code: 1010
+        message: Generic Error
+        datetime: "2021-01-30T08:30:00Z"
+        
+    ProductType:
+      type: string
+      description: Type of a book
+      enum:
+        - MULTIMEDIA
+        - GAMING
+        - DOMOTIC
+        - MUSIC
+        - OTHERS
+      example: GAMING
+    Product:
+      type: object
+      additionalProperties: false
+      description: Product Item's info
+      properties:
+        id:
+          $ref: '#/components/schemas/id_int64Unsigned'
+        productName:
+          $ref: '#/components/schemas/safetextName'
+        productDescription:
+          $ref: '#/components/schemas/safetextMessages'
+        productType:
+          $ref: '#/components/schemas/ProductType'
+        brand:
+          $ref: '#/components/schemas/safetextName'
+        weight:
+          $ref: '#/components/schemas/intWeight'
+        stock:
+          $ref: '#/components/schemas/Stock'
+      required:
+        - productName
+        - productType
+        - brand
+        - weight
+      example:
+        id: 1
+        productName: Playstation 5 Digital
+        productDescription: Console di nuova generazione 
+        productType: GAMING
+        weight: 10
+        brand: Sony
+        stock:
+          quantity: 0
+          purchaseCost: 0
+          priceToSell: 0
+    Stock:
+      type: object
+      additionalProperties: false
+      description: Stock of the product
+      properties:
+        productId:
+          $ref: '#/components/schemas/id_int64Unsigned'
+        quantity:
+          $ref: '#/components/schemas/int16Unsigned'
+        purchaseCost:
+          $ref: '#/components/schemas/floatPrice'
+        priceToSell:
+          $ref: '#/components/schemas/floatPrice'
+        lastModifiedDate:
+          $ref: '#/components/schemas/timestamp'
+      required:
+        - quantity
+        - price
+        - priceToSell
+      example:
+        productId: 5
+        quantity: 20
+        purchaseCost: 45
+        priceToSell: 70
+
+paths:
+  /product:
+    post:
+      summary: Add New Product
+      operationId: addProduct
+      tags:
+        - Product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+        x-codegen-request-body-name: body
+      responses:
+        200:
+          description: A created Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+  
+  /product/{productId}:
+    put:
+      operationId: updateProduct
+      summary: Updates  Product's info
+      tags:
+        - Product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: the identify of product to update
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+        x-codegen-request-body-name: body
+      responses:
+        200:
+          description: The Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /stock:
+    post:
+      summary: Add or update stock for a product
+      operationId: addStock
+      tags:
+        - Stock
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Stock'
+        required: true
+        x-codegen-request-body-name: body
+      responses:
+        200:
+          description: Successfully created 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stock"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+   
+  /stock/{productId}:
+    get:
+      operationId: getStock
+      summary: Retrieve the stock for product
+      tags:
+        - Stock
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: the identify of product related the stock
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned'
+      responses:
+        200:
+          description: The Stock updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stock'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+    put:
+      operationId: updateStock
+      summary: Update the stock for product
+      tags:
+        - Stock
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: the identify of product related the stock
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Stock'
+        required: true
+        x-codegen-request-body-name: body
+      responses:
+        200:
+          description: The Stock updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stock'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+  /stock/quantity/{productId}:
+    put:
+      operationId: updateItemQuantity
+      summary: updates the available quantities for product
+      tags:
+        - Stock
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: the identify of the item to update
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned'
+        - name: quantityToUpdate
+          in: query
+          required: true
+          description: the size to add or remove from quantity availables
+          schema:
+            $ref: '#/components/schemas/int16Unsigned'
+        - name: action
+          in: query
+          required: false
+          description: the operation to be carried out in the update
+          schema:
+            type: string
+            enum:
+              - ADD
+              - REMOVE
+      responses:
+        200:
+          description: Response if valid operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stock"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+    
+

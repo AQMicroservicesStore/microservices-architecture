@@ -1,0 +1,96 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: ${ORDER_SERVICE_PORT:7030}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 100
+      min-spare: 10
+
+db:
+  username: ${DB_ORDER_USERNAME:aqstore_order}
+  password: ${DB_ORDER_USERNAME:aqstore_order}
+  port: ${DB_ORDER_PORT:5434}
+  host: ${DB_ORDER_HOST:localhost}
+  schema: ${DB_ORDER_SCHEMA:aqstore_order}
+  endpoint: postgresql://${db.host}:${db.port}/${db.schema}
+
+
+logging:
+  level:
+    root: INFO
+#    kafka.*: WARN
+#    org.springframework.*: INFO
+#    org.neo4j.*: INFO
+#    org.apache.kafka.*: WARN
+#    
+
+spring:
+  application:
+    name: order-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+           issuer-uri: http://localhost:8090/auth/realms/aqstore-spring-realm
+    
+  datasource:
+    username: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    hikari:
+      pool-name: db_order_pool
+      connection-timeout: 5000
+      maximum-pool-size: 10     
+  flyway:
+    user: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    locations: "classpath:/db/migration"
+    
+  cloud:
+    function:
+      definition: orderSagaConsumer;
+    stream:
+      source: orderCheckItems;orderCheckAddress;orderUnlockPayment;orderUnlockDelivery;orderHistoryInfo
+      bindings:
+        orderCheckItems-out-0:
+          destination: order.items
+          producer:
+            auto-startup: true
+            required-groups: warehouseGroup
+        orderCheckAddress-out-0:
+          destination: order.address
+          producer:
+            auto-startup: true
+            required-groups: accountGroup
+        orderUnlockPayment-out-0:
+          destination: order.payment
+          producer:
+            auto-startup: true
+            required-groups: paymentGroup
+        orderUnlockDelivery-out-0:
+          destination: order.delivery
+          producer:
+            auto-startup: true
+            required-groups: deliveryGroup
+        orderHistoryInfo-out-0:
+          destination: order.history
+          producer:
+            auto-startup: true
+            required-groups: orderHistoryGroup
+        orderSagaConsumer-in-0:
+          destination: order.saga
+          group: orderGroup
+
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USERNAME:admin}
+    password: ${RABBIT_PASSWORD:admin}
+    connection-timeout: 15s

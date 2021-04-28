@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.4.4</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.aqstore.service</groupId>
+	<artifactId>aqstore-order-service</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>aqstore-order-service</name>
+	<description>A service to manage the order order</description>
+	<properties>
+		<java.version>11</java.version>
+		<spring-cloud.version>2020.0.2</spring-cloud.version>
+		<testcontainers.version>1.15.2</testcontainers.version>
+		<openapi-generator>5.1.0</openapi-generator>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project-base-package>com.aqstore.service</project-base-package>
+		<project-openapi-package>${project-base-package}.openapi</project-openapi-package>
+		<start-class>${project-base-package}.OrderServiceApplication</start-class>
+		<org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
+		<lombok-custom-version>1.18.14</lombok-custom-version>
+		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+		<aqstore-core-version>0.0.2-SNAPSHOT</aqstore-core-version>
+	</properties>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- Security Config -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+				<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+		</dependency>
+
+		<!-- Spring Web reactive -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- BROKER MESSAGE -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+		</dependency>
+		
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.springframework.cloud</groupId> -->
+<!-- 			<artifactId>spring-cloud-starter-stream-rabbit</artifactId> -->
+<!-- 		</dependency> -->
+
+
+
+
+
+
+
+		<!-- Spring Cloud Config -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.cloud</groupId> -->
+		<!-- <artifactId>spring-cloud-starter-config</artifactId> -->
+		<!-- </dependency> -->
+
+
+
+
+		<!-- Database -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+		</dependency>
+		<!-- Versioning database -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.liquibase</groupId> -->
+		<!-- <artifactId>liquibase-core</artifactId> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+
+
+		<!-- Openapi Dependencies -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-boot-starter</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+		</dependency>
+
+		<!-- Lombok + MapStruct -->
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${org.mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok-mapstruct-binding</artifactId>
+			<version>${lombok-mapstruct-binding.version}</version>
+		</dependency>
+
+		<!-- TEST DEPENDENCIES -->
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream</artifactId>
+			<scope>test</scope>
+			<classifier>test-binder</classifier>
+			<type>test-jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jeasy</groupId>
+			<artifactId>easy-random-core</artifactId>
+			<version>4.1.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.aqstore.service</groupId>
+			<artifactId>aqstore-core</artifactId>
+			<version>${aqstore-core-version}</version>
+		</dependency>
+	</dependencies>
+
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<image>
+						<name>aqstore/${project.artifactId}:${project.version}</name>					
+						<env>
+							<BP_JVM_VERSION>11.*</BP_JVM_VERSION>
+						</env>
+					</image>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<release>11</release>
+					<annotationProcessorPaths>
+						<annotationProcessorPath>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</annotationProcessorPath>
+						<annotationProcessorPath>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${org.mapstruct.version}</version>
+						</annotationProcessorPath>
+						<annotationProcessorPath>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok-mapstruct-binding</artifactId>
+							<version>${lombok-mapstruct-binding.version}</version>
+						</annotationProcessorPath>
+					</annotationProcessorPaths>
+					<showWarnings>true</showWarnings>
+					<compilerArgs>
+						<compilerArg>
+							-Amapstruct.verbose=true
+						</compilerArg>
+						<compilerArg>
+							-Amapstruct.defaultComponentModel=spring
+						</compilerArg>
+						<compilerArg>
+							-Amapstruct.suppressGeneratorTimestamp=true
+						</compilerArg>
+						<compilerArg>
+							-Amapstruct.suppressGeneratorVersionInfoComment=true
+						</compilerArg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>${openapi-generator}</version>
+				<executions>
+					<execution>
+						<id>spring-server</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${basedir}/src/main/resources/static/api/v1/order-openapi.yml</inputSpec>
+<!-- 							<templateDirectory>${project.basedir}/templates</templateDirectory> -->
+							<generatorName>spring</generatorName>
+							<apiPackage>${project-openapi-package}</apiPackage>
+							<invokerPackage>${project-openapi-package}.handler</invokerPackage>
+							<modelPackage>${project-openapi-package}.model</modelPackage>
+							<skipValidateSpec>false</skipValidateSpec>
+							<!-- <strictSpec>true</strictSpec> -->
+							<ignoreFileOverride>${project.basedir}/.openapi-generator-ignore</ignoreFileOverride>
+							<generateModels>true</generateModels>
+							<generateModelDocumentation>false</generateModelDocumentation>
+							<generateApis>true</generateApis>
+							<generateApiDocumentation>true</generateApiDocumentation>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<library>spring-boot</library>
+							<modelNamePrefix>Api</modelNamePrefix>
+							<modelNameSuffix>Dto</modelNameSuffix>
+							<verbose>false</verbose>
+							<enablePostProcessFile>false</enablePostProcessFile>
+							<configOptions>
+								<interfaceOnly>true</interfaceOnly>
+								<delegatePattern>true</delegatePattern>
+								<configPackage>${project-openapi-package}.config</configPackage>
+								<dateLibrary>java8</dateLibrary>
+								<useBeanValidation>true</useBeanValidation>
+								<reactive>false</reactive>
+								<sortParamsByRequiredFlag>true</sortParamsByRequiredFlag>
+								<sortModelPropertiesByRequiredFlag>true</sortModelPropertiesByRequiredFlag>
+								<serializableModel>true</serializableModel>
+								<snapshotVersion>true</snapshotVersion>
+								<openApiNullable>true</openApiNullable>
+								<!-- <async>true</async> -->
+								<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
+								<developerOrganization>AQMicroservicesStore</developerOrganization>
+								<developerOrganizationUrl>https://github.com/orgs/AQMicroservicesStore</developerOrganizationUrl>
+							</configOptions>
+							<typeMappings>
+							     <typeMapping>OffsetDateTime=Instant</typeMapping>
+							</typeMappings>
+							<importMappings>                                
+							     <importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping>
+							</importMappings>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

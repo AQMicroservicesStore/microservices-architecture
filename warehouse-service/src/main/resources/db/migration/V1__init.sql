@@ -12,14 +12,20 @@ CREATE TABLE product (
       last_modified_date  bigint NOT NULL
 );
 
+
+
 CREATE TABLE stock (
-      product_id          bigint PRIMARY KEY NOT NULL,
+      product             bigint PRIMARY KEY references product(id),
       quantity	        integer NOT NULL,
       price_to_sell       float8 NOT NULL,
       purchase_cost       float8 NOT NULL,
       version             integer NOT NULL,
-      created_by          VARCHAR(200) NOT NULL,
+      created_by VARCHAR(200) NOT NULL,
       created_date        bigint NOT NULL,
       last_modified_by    VARCHAR(200) NOT NULL,
-      last_modified_date  bigint NOT NULL
+      last_modified_date  bigint NOT NULL     
 );
+
+
+
+

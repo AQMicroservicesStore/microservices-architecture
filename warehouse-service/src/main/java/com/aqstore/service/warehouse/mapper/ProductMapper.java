@@ -3,14 +3,14 @@ package com.aqstore.service.warehouse.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.stereotype.Component;
 
-import com.aqstore.service.event.EventType;
+import com.aqstore.service.event.payload.ProductEvent;
 import com.aqstore.service.openapi.model.ApiProductDto;
 import com.aqstore.service.openapi.model.ApiStockDto;
-import com.aqstore.service.warehouse.event.ProductEvent;
 import com.aqstore.service.warehouse.persistence.entity.Product;
 import com.aqstore.service.warehouse.persistence.entity.Stock;
 
@@ -27,51 +27,48 @@ public interface ProductMapper  {
 	@Mapping(source = "productType", target = "type",qualifiedByName = {"mapperConverter","checkEmptyString"})
 	@Mapping(source = "brand", target = "brand" ,qualifiedByName = {"mapperConverter","checkEmptyString"})
 	@Mapping(source = "productDescription", target = "description",qualifiedByName = {"mapperConverter","checkEmptyString"})
+	@Mapping(target = "stock",expression = "java(this.createStock(p.getStock()))")
 	Product toEntity(ApiProductDto p);
 
 	@Mapping(target = "productName", source = "name")
 	@Mapping(target = "productType", source = "type")
 	@Mapping(target = "productDescription", source = "description")
-	@Mapping(target = "stock", ignore = true)
+	@Mapping(target = "stock.quantity", source = "stock.quantity")
+	@Mapping(target = "stock.priceToSell", source = "stock.priceToSell")
+	@Mapping(target = "stock.purchaseCost", source = "stock.purchaseCost")
+//	@Mapping(target = "stock.productId", source = "stock.productId")
+//	@Mapping(target = "stock.stockId", source = "stock.id",qualifiedByName = {"mapperConverter","stringToUUID"})
+	@Mapping(target = "stock.lastModifiedDate", source = "stock.lastModifiedDate",qualifiedByName = {"mapperConverter","longToInstant"})
 	ApiProductDto toDTO(Product p);
 
-	@Mapping(target = "productName", source = "p.name")
-	@Mapping(target = "productType", source = "p.type")
-	@Mapping(target = "productDescription", source = "p.description")
-	@Mapping(target = "stock.quantity", source = "s.quantity")
-	@Mapping(target = "stock.priceToSell", source = "s.priceToSell")
-	@Mapping(target = "stock.purchaseCost", source = "s.purchaseCost")
-	@Mapping(target = "stock.productId", source = "s.productId")
-	@Mapping(target = "stock.lastModifiedDate", source = "s.lastModifiedDate",qualifiedByName = {"mapperConverter","longToInstant"})
-	ApiProductDto toDTO(Product p, Stock s);
-
-	
-	
-	@Mapping(target = "name", ignore = true)
-	void updateEntity(@MappingTarget Product toUpdate, Product request);
-
-	
-	
+		
 	
 	@Mapping(target = "createdDate", ignore = true)
 	@Mapping(target = "lastModifiedDate", ignore = true)
 	@Mapping(target = "createdBy", ignore = true)
 	@Mapping(target = "lastModifiedBy", ignore = true)
 	@Mapping(target = "version", ignore = true)
+//	@Mapping(target = "id", ignore = true)
 	void updateStockEntity (@MappingTarget Stock target,ApiStockDto source);
 
-	default Stock toStockEntityNewRequest(ApiProductDto dto,Long productId) {
+	
+	
+	@Named("createStock")
+	default Stock createStock(ApiStockDto dto) {
 		Stock stock = Stock.builder()
-				.productId(productId)
+//				.id(UUID.randomUUID().toString())
 				.priceToSell(0.00F)
 				.purchaseCost(0.00F)
 				.quantity(0)
 				.build();
-		updateStockEntity(stock, dto.getStock());
+		updateStockEntity(stock, dto);
 		return stock;
 	}
 
 
+	@Mapping(target = "eventType",ignore = true)
+	@Mapping(target = "eventId",ignore = true)
+	@Mapping(target = "eventCreationTimestamp",ignore = true)
 	@Mapping(target = "id", source = "p.id")
 	@Mapping(target = "createdDate", source = "p.createdDate")
 	@Mapping(target = "version", source = "p.version")
@@ -81,11 +78,10 @@ public interface ProductMapper  {
 	@Mapping(target = "weight", source = "p.weight")
 	@Mapping(target = "description", source = "p.description")
 	@Mapping(target = "lastProductModifiedDate", source = "p.lastModifiedDate")
-	@Mapping(target = "quantity", source = "s.quantity")
-	@Mapping(target = "priceToSell", source = "s.priceToSell")
-	@Mapping(target = "purchaseCost", source = "s.purchaseCost")
-	@Mapping(target = "lastStockModifiedDate", source = "s.lastModifiedDate")
-	@Mapping(target = "eventType", source = "eventType")
-	ProductEvent toEvent(Product p, Stock s, EventType eventType);
+	@Mapping(target = "quantity", source = "p.stock.quantity")
+	@Mapping(target = "priceToSell", source = "p.stock.priceToSell")
+	@Mapping(target = "purchaseCost", source = "p.stock.purchaseCost")
+	@Mapping(target = "lastStockModifiedDate", source = "p.stock.lastModifiedDate")
+	ProductEvent toEvent(Product p);
 
 }

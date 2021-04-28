@@ -29,7 +29,7 @@ public class WarehouseSecurityConfig extends WebSecurityConfigurerAdapter {
 			// other public endpoints of your API may be appended to this array
 	};
 
-	private static final String[] ALLOWED_ROLES = { "WAREHOUSE_HANDLER" };
+	private static final String[] ALLOWED_ROLES = { "ADMINISTRATOR" };
 
 	@Value("")
 	private String path;

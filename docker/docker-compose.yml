@@ -1,28 +1,29 @@
 version: "3.8"
 networks:
-  aqstore-network:
+  aqstore-network-mc:
     driver: bridge
 volumes:
-  postgres_data:
+  postgres_data_mc:
       driver: local
 services:
   aqstore-db-postgres:
     image: "postgres:13"
-    container_name: aqstore_postgres
+    container_name: aqstore_postgres_mc
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+      - postgres_data_mc:/var/lib/postgresql/data
     ports:
       - 5434:5432
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=aqstore
+      - POSTGRES_DB=root
     networks:
-      - aqstore-network
+      - aqstore-network-mc
   
   aqstore-rabbitmq-broker:
     image: rabbitmq:3-management
-    container_name: aqstore_rabbit
+    container_name: aqstore_rabbit_mc
     ports:
       - 5672:5672
       - 15672:15672
@@ -30,27 +31,28 @@ services:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
     networks:
-      - aqstore-network 
+      - aqstore-network-mc 
 
   aqstore-elasticsearch:
     image: elasticsearch:7.8.0
-    container_name: aqstore_elasticsearch
+    container_name: aqstore_elasticsearch_mc
     ports:
       - '9200:9200'
       - '9300:9300'
     environment:
       - discovery.type=single-node
     networks:
-      - aqstore-network  
+      - aqstore-network-mc  
   aqstore-keycloak:
     image: quay.io/keycloak/keycloak:latest
-    container_name: aqstore_keycloak
+    container_name: aqstore_keycloak_mc
+    command: -Dkeycloak.profile.feature.upload_scripts=enabled
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: aqstore-db-postgres
-      DB_DATABASE: aqstore
-      DB_USER: admin
-      DB_PASSWORD: admin
+      DB_DATABASE: aqstore_keycloak
+      DB_USER: aqstore_keycloak
+      DB_PASSWORD: aqstore_keycloak
       DB_SCHEMA: public
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
@@ -61,13 +63,11 @@ services:
     depends_on:
       - aqstore-db-postgres
     networks:
-      - aqstore-network
+      - aqstore-network-mc
   aqstore-redis:
-    container_name: aqstore_redis
+    container_name: aqstore_redis_mc
     image: redis:4.0
-    container_name: app_redis
     ports:
       - "6379:6379"
     networks:
-      - aqstore-network
-  
+      - aqstore-network-mc

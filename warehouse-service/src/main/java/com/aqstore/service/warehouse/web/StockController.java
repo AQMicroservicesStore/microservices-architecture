@@ -8,7 +8,7 @@ import com.aqstore.service.openapi.StockApi;
 import com.aqstore.service.openapi.model.ApiQuantityActionTypeDto;
 import com.aqstore.service.openapi.model.ApiStockDto;
 import com.aqstore.service.warehouse.WarehouseConstants;
-import com.aqstore.service.warehouse.service.StockService;
+import com.aqstore.service.warehouse.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,25 +16,25 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(WarehouseConstants.WAREHOUSE_V1_PREFIX)
 @RequiredArgsConstructor
 public class StockController implements StockApi{
-	private final StockService stockService;
+	private final ProductService productService;
 
 	
 	@Override
-	public ResponseEntity<ApiStockDto> getStock(Long productId) {
-		ApiStockDto response = stockService.getStock(productId);
+	public ResponseEntity<ApiStockDto> getStock(Long stockId) {
+		ApiStockDto response = productService.getStock(stockId);
 		return ResponseEntity.ok(response);
 	}
 	
 	@Override
-	public ResponseEntity<ApiStockDto> updateStock(Long productId, ApiStockDto apiStockDto) {
-		ApiStockDto response = stockService.updateStock(productId, null);
+	public ResponseEntity<ApiStockDto> updateStock(Long stockId, ApiStockDto apiStockDto) {
+		ApiStockDto response = productService.updateStock(stockId, apiStockDto);
 		return ResponseEntity.ok(response);
 	}
 
 	
 	@Override
-	public ResponseEntity<ApiStockDto> updateItemQuantity(Long productId, Integer quantityToUpdate, ApiQuantityActionTypeDto action) {
-		ApiStockDto response = stockService.updateProductQuantity(productId, quantityToUpdate, action);
+	public ResponseEntity<ApiStockDto> updateItemQuantity(Long stockId, Integer quantityToUpdate, ApiQuantityActionTypeDto action) {
+		ApiStockDto response = productService.updateProductQuantity(stockId, quantityToUpdate, action);
 		return ResponseEntity.ok(response);
 	}
 	

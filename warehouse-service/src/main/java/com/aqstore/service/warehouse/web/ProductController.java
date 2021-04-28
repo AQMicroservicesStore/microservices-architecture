@@ -30,13 +30,7 @@ public class ProductController implements ProductApi{
 		ApiProductDto response =  productService.addProduct(apiProductDto);
 		return ResponseEntity.ok(response);
 	}
-	
-	@Override
-	public ResponseEntity<ApiProductDto> updateProduct(Long productId, ApiProductDto apiProductDto) {
-		ApiProductDto response =  productService.updateProduct(productId, apiProductDto);
-		return ResponseEntity.ok(response);
 
-	}
 	
 	
 }

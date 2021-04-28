@@ -26,6 +26,7 @@ public class Product extends Auditable{
 	private String brand;
 	private Integer weight;
 	private String description;
+    private Stock stock;
 
 }
 

@@ -183,7 +183,9 @@ components:
         description:
           $ref: '#/components/schemas/safetextMessages'
         availability:
-            type: boolean
+          type: boolean
+        quantity:
+          $ref: '#/components/schemas/int16Unsigned'
         price:
           $ref: '#/components/schemas/floatPrice'
         productType:
@@ -234,42 +236,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CatalogProduct'
-    CatalogShippingMethod:
-      type: object
-      additionalProperties: false
-      description: Shipping's info
-      properties:
-        id:
-          $ref: '#/components/schemas/id_int64Unsigned'
-        shippingName:
-          $ref: '#/components/schemas/safetextName'
-        duration:
-          $ref: '#/components/schemas/safetextMessages'
-        price:
-          $ref: '#/components/schemas/floatPrice'
-        maxWeight:
-          $ref: '#/components/schemas/int16Unsigned'
-      required:
-        - id
-        - shippingName
-        - duration
-        - price
-        - maxWeight
-      example:
-        id: 60a37ac1-c7b2-4b32-8557-d8aba5bdd47d
-        productName: Corriere Espresso
-        duration: 24/48 ore
-        price: 9
-        maxWeight: 30
-    CatalogShippingMethods:
-      type: object
-      additionalProperties: false
-      description: List of Shipping methods
-      properties:
-        shippingMethods:
-          type: array
-          items:
-            $ref: '#/components/schemas/CatalogShippingMethod'
         
   securitySchemes:
     BearerAuth:
@@ -279,28 +245,7 @@ components:
 security: 
   - BearerAuth: []          
 
-paths:
-  /shippings:
-    get:
-      summary: List all shipping methods
-      operationId: listshippings
-      tags:
-        - Shipping
-      responses:
-        200:
-          description: "A list of shippings methods"
-          content:
-            application/json:
-              schema:
-               $ref: "#/components/schemas/CatalogShippingMethods"
-        400:
-          $ref: '#/components/responses/BadRequest'
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-        500:
-          $ref: '#/components/responses/GenericError'      
+paths:  
   /products:
     get:
       summary: List all products

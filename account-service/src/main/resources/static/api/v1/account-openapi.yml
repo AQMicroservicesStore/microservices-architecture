@@ -1,0 +1,232 @@
+openapi: "3.0.2"
+info:
+  title: Account Service
+  description: A service to handle user info
+  version: 1.0.0
+  contact:
+    name: API SUPPORT
+    email: apisupport@example.com
+  license:
+    name: MIT License
+    url: https://mit-license.org/
+
+servers:
+- url: http://{basepath}:{port}/account-service/api/v1
+  description: Internal Microservices Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '7020'
+        - '7021'
+        - '7022'
+      default: '7020'
+- url: http://{basepath}:{port}/{prefix}/account/api/v1
+  description: Gateway Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '9000'
+      default: '9000'
+    prefix:
+      enum:
+        - public
+        - private
+      default: private
+
+
+
+
+components:
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    GenericError:
+      description: Generic Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    timestamp:
+      type: string
+      format: date-time
+      example: "2021-01-30T08:30:00Z"
+    safetextName:
+      description: Safe text for Name
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 50
+    safetextMessages:
+      description: Safe text for Description
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 100
+    Error:
+      type: object
+      additionalProperties: false
+      description: Error Details
+      properties:
+        errorCode:
+          type: string
+          pattern: '^[a-zA-Z0-9]{4}$'
+          minLength: 4
+          maxLength: 4
+        errors:
+          type: array
+          items:
+              $ref: '#/components/schemas/safetextMessages'
+        datetime:
+          $ref: '#/components/schemas/timestamp'
+      required:
+        - errorCode
+        - errors
+        - datetime
+      example:
+        code: WS01
+        errors: 
+            - Generic Error
+        datetime: "2021-01-30T08:30:00Z"
+     
+    User:
+      type: object
+      additionalProperties: false
+      description: User's info
+      properties:
+        username:
+          $ref: '#/components/schemas/safetextName'
+        fullName:
+          $ref: '#/components/schemas/safetextMessages'
+        email:
+          type: string
+        name:
+          $ref: '#/components/schemas/safetextName'
+        lastName:
+          $ref: '#/components/schemas/safetextName'
+        address:
+          $ref: '#/components/schemas/Address'
+
+      required:
+        - id
+        - username
+        - email
+        - name
+        - lastName
+      example:
+        id: 30997932de98b-4136-bec1-98d7a1862db1
+        username: pippo
+        email: name@example.it 
+        name: name
+        lastName: lastName
+        address:
+          city: Napoli
+          country: Italy
+          cap: "80144"
+          street: via delle vie
+        
+    Address:
+      type: object
+      additionalProperties: false
+      description: User Address
+      properties:
+        city:
+          $ref: '#/components/schemas/safetextName'
+        country:
+          $ref: '#/components/schemas/safetextName'
+        cap:
+          $ref: '#/components/schemas/safetextName'
+        street:
+          $ref: '#/components/schemas/safetextMessages'
+      required:
+        - city
+        - country
+        - cap
+        - street
+      example:
+        city: Napoli
+        country: Italy
+        cap: "80144"
+        street: via delle vie
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security: 
+  - BearerAuth: []
+
+paths:
+  /info:
+    post:
+      summary: Add or Update Address
+      operationId: addAddress
+      tags:
+        - UserInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+        required: true
+        x-codegen-request-body-name: body
+      responses:
+        200:
+          description: A created Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+
+    get:
+      operationId: whoami
+      summary:  retrieve user info
+      tags:
+          - UserInfo
+      responses:
+        200:
+          description: The User's info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+   
+    
