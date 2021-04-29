@@ -1,0 +1,32 @@
+{"properties": [
+  {
+    "name": "db.username",
+    "type": "java.lang.String",
+    "description": "A description for 'db.username'"
+  },
+  {
+    "name": "db.password",
+    "type": "java.lang.String",
+    "description": "A description for 'db.password'"
+  },
+  {
+    "name": "db.port",
+    "type": "java.lang.String",
+    "description": "A description for 'db.port'"
+  },
+  {
+    "name": "db.host",
+    "type": "java.lang.String",
+    "description": "A description for 'db.host'"
+  },
+  {
+    "name": "db.schema",
+    "type": "java.lang.String",
+    "description": "A description for 'db.schema'"
+  },
+  {
+    "name": "db.endpoint",
+    "type": "java.lang.String",
+    "description": "A description for 'db.endpoint'"
+  }
+]}

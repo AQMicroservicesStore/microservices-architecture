@@ -35,7 +35,10 @@ public interface OrderMapper  {
 
 	@Mapping(target = "idUser", source = "createdBy")
 	@Mapping(target = "lastUpdate", source = "lastModifiedDate",qualifiedByName = {"mapperConverter","longToInstant"})
+	@Mapping(target = "items", source = "orderItems")
 	ApiOrderResponseDto toDTO(Order p);
+
+
 
 	@Mapping(target = "eventType",ignore = true)
 	@Mapping(target = "eventId",ignore = true)
@@ -65,6 +68,7 @@ public interface OrderMapper  {
 	@Mapping(target = "eventCreationTimestamp",ignore = true)
 	@Mapping(target = "orderId", source = "idOrder")
 	@Mapping(target = "userId", source = "createdBy")
+	@Mapping(target = "refundedDescription", source = "statusDescription")
 	OrderPaymentsEvent toPaymentEvent(Order order);
 
 	@Mapping(target = "eventType",ignore = true)

@@ -125,10 +125,16 @@ components:
           $ref: '#/components/schemas/id_int64Unsigned'
         price:
           $ref: '#/components/schemas/floatPrice'
-        confirmed:
+        accepted:
           type: boolean      
-        confirmedTs:
+        transactionTs:
           $ref: '#/components/schemas/timestamp'
+        transactionCode:
+          $ref: '#/components/schemas/safetextMessages'
+        userId:
+          $ref: '#/components/schemas/safetextMessages'
+        refundedDescription:
+          $ref: '#/components/schemas/safetextMessages'
         refunded:
           type: boolean      
         refundedTs:
@@ -140,7 +146,7 @@ components:
       example:
         idOrder: 2
         price: 40.00
-        confirmed: true
+        accepted: true
         
   securitySchemes:
     BearerAuth:
@@ -151,34 +157,6 @@ security:
   - BearerAuth: []
 
 paths:
-  /payment:
-    post:
-      summary: Confirm payment
-      operationId: updatePayOrder
-      tags:
-        - OrderPayments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Payment'
-        required: true
-        x-codegen-request-body-name: body
-      responses:
-        200:
-          description: A payment Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Payment"
-        400:
-          $ref: '#/components/responses/BadRequest'
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-        500:
-          $ref: '#/components/responses/GenericError'
   /payment/{orderId}:
     get:
       operationId: getPayment
@@ -207,4 +185,59 @@ paths:
           $ref: '#/components/responses/NotFound'
         500:
           $ref: '#/components/responses/GenericError'
-
+  /payment/{orderId}/confirm:
+    post:
+      summary: Confirm payment
+      operationId: confirmPaymentOrder
+      tags:
+        - OrderPayments
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: the identify of the the order related to payment
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned'
+      responses:
+        200:
+          description: A payment Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+  /payment/{orderId}/reject:
+    post:
+      summary: reject payment
+      operationId: rejectPaymentOrder
+      tags:
+        - OrderPayments
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: the identify of the the order related to payment
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned'
+      responses:
+        200:
+          description: A payment Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'

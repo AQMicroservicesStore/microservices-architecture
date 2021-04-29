@@ -1,13 +1,11 @@
 package com.aqstore.service.order.event;
 
-import java.util.function.Consumer;
-
-import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.aqstore.service.event.EventProducerWrapper;
 import com.aqstore.service.event.EventSupplier;
 import com.aqstore.service.event.EventType;
-import com.aqstore.service.event.EventProducerWrapper;
 import com.aqstore.service.event.payload.EventPayload;
 import com.aqstore.service.event.payload.OrderCheckAddressEvent;
 import com.aqstore.service.event.payload.OrderCheckItemEvent;
@@ -29,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderSagaOrchestrator {
+public class OrderSagaOrchestratorHandler {
 	private final EventSupplier eventSupplier;
 	private final OrderMapper mapper;
 	private final OrderRepository orderRepository;
@@ -41,87 +39,79 @@ public class OrderSagaOrchestrator {
 		sendOrderItemCheckEvent(order,EventType.SAGA_CONTINUE);
 	}
 
-	@Bean
-	public Consumer<OrderSagaEvent> orderSagaConsumer() throws Exception {
-		return event -> {
-			try {
-				log.info("[OrderSagaConsumer] : Consuming event with Id=[{}] - createdAt=[{}] - payloadId[{}]", event.getEventId(),
-						event.getEventCreationTimestamp().toString(),event.getPayloadId());
-				switch(event.getEventType()) {
-				case IGNORE:
+	
+	
+	@Async(OrderConstants.EVENT_TASK_EXECUTOR)	
+	public void continueSagaOrder(OrderSagaEvent sagaEvent) {
+		try {
+			Order orderToUpdate = orderRepository.findById(sagaEvent.getOrderId()).orElseThrow(
+					()-> AQStoreExceptionHandler.handleException(OrderExceptionType.ORDER_NOT_FOUND,sagaEvent.getOrderId())
+			);
+			mapper.updateBySaga(orderToUpdate,sagaEvent);
+			Order orderUpdated = orderRepository.save(orderToUpdate);
+			sendOrderHistoryEvent(orderUpdated,sagaEvent,EventType.CQRS_UPDATED);
+			switch (sagaEvent.getStepInfo()){
+				case STEP2_CHECK_ITEMS:
+					sendOrderUserAddressEvent(orderUpdated);
 					break;
-				case SAGA_ERROR_ROLLBACK:
-					handleRollbackError(event);
-					break;	
-				case SAGA_ROLLBACK:
-					rollbackOrder(event);
+				case STEP3_CHECK_ADDRESS:
+					sendPaymentEvent(orderUpdated,EventType.SAGA_CONTINUE);
 					break;
-				case SAGA_CONTINUE:
-					continueSagaOrder(event);			
+				case STEP4_CONFIRM_PAYMENT:
+					sendDeliveryEvent(orderUpdated,EventType.SAGA_CONTINUE);
 					break;
 				default:
 					break;
-				}
-			}catch(Exception e) {
-				log.error("[OrderSagaConsumer] : failed to consume event with Id=[{}]", event.getEventId());
-				AQStoreExceptionHandler.handleException(e);
 			}
-
-		};
-
+		} catch (Exception e) {
+			log.error("[OrderSagaConsumer] : failed to consume event with Id=[{}]", sagaEvent.getEventId());
+			AQStoreExceptionHandler.handleException(e);
+		}
 	}
+	
+	
+	
 
 
-	private void handleRollbackError(OrderSagaEvent event) {
+	@Async(OrderConstants.EVENT_TASK_EXECUTOR)
+	void handleRollbackError(OrderSagaEvent event) {
 		log.error("Rollback error -> {}",event.getStepInfo().name());
 	}
 
-
-	private void rollbackOrder(OrderSagaEvent sagaEvent) {
-		Order orderToAbort = orderRepository.findById(sagaEvent.getOrderId()).orElseThrow(
-				()-> AQStoreExceptionHandler.handleException(OrderExceptionType.ORDER_NOT_FOUND,sagaEvent.getOrderId())
-		);
-		mapper.updateBySagaError(orderToAbort,sagaEvent);
-		Order orderAborted = orderRepository.save(orderToAbort);
-		sendOrderHistoryEvent(orderAborted,sagaEvent,EventType.CQRS_DELETED);
-		switch (sagaEvent.getStepInfo()){
-			case STEP3_CHECK_ADDRESS:
-			case STEP4_CONFIRM_PAYMENT:
-				sendOrderItemCheckEvent(orderAborted,EventType.SAGA_ROLLBACK);
-				break;
-			case STEP6_ORDER_DELIVERED:
-				sendOrderItemCheckEvent(orderAborted,EventType.SAGA_ROLLBACK);
-				sendPaymentEvent(orderAborted,EventType.SAGA_ROLLBACK);
-				break;
-			default:
-				break;
+	@Async(OrderConstants.EVENT_TASK_EXECUTOR)
+	void rollbackOrder(OrderSagaEvent sagaEvent) {
+		try {
+			Order orderToAbort = orderRepository.findById(sagaEvent.getOrderId()).orElseThrow(
+					()-> AQStoreExceptionHandler.handleException(OrderExceptionType.ORDER_NOT_FOUND,sagaEvent.getOrderId())
+			);
+			mapper.updateBySagaError(orderToAbort,sagaEvent);
+			Order orderAborted = orderRepository.save(orderToAbort);
+			switch (sagaEvent.getStepInfo()){
+				case STEP3_CHECK_ADDRESS:
+				case STEP4_CONFIRM_PAYMENT:
+					sendOrderItemCheckEvent(orderAborted,EventType.SAGA_ROLLBACK);
+					break;
+				case STEP5_ORDER_SHIPPED:
+					sendOrderItemCheckEvent(orderAborted,EventType.SAGA_ROLLBACK);
+					sendPaymentEvent(orderAborted,EventType.SAGA_ROLLBACK);
+					break;
+				case STEP6_ORDER_DELIVERED:
+					sendPaymentEvent(orderAborted,EventType.SAGA_ROLLBACK);
+					break;
+				default:
+					break;
+			}
+			sendOrderHistoryEvent(orderAborted,sagaEvent,EventType.CQRS_DELETED);
+		} catch (Exception e) {
+			log.error("[OrderSagaConsumer] : failed to consume event with Id=[{}]", sagaEvent.getEventId());
+			AQStoreExceptionHandler.handleException(e);
 		}
 
 
 
 	}
 
-	private void continueSagaOrder(OrderSagaEvent sagaEvent) {
-		Order orderToUpdate = orderRepository.findById(sagaEvent.getOrderId()).orElseThrow(
-				()-> AQStoreExceptionHandler.handleException(OrderExceptionType.ORDER_NOT_FOUND,sagaEvent.getOrderId())
-		);
-		mapper.updateBySaga(orderToUpdate,sagaEvent);
-		Order orderUpdated = orderRepository.save(orderToUpdate);
-		sendOrderHistoryEvent(orderUpdated,sagaEvent,EventType.CQRS_UPDATED);
-		switch (sagaEvent.getStepInfo()){
-			case STEP2_CHECK_ITEMS:
-				sendOrderUserAddressEvent(orderUpdated);
-				break;
-			case STEP3_CHECK_ADDRESS:
-				sendPaymentEvent(orderUpdated,EventType.SAGA_CONTINUE);
-				break;
-			case STEP4_CONFIRM_PAYMENT:
-				sendDeliveryEvent(orderUpdated,EventType.SAGA_CONTINUE);
-				break;
-			default:
-				break;
-		}
-	}
+
 
 
 
@@ -131,8 +121,7 @@ public class OrderSagaOrchestrator {
 		OrderHistoryEvent eventPayload = mapper.toOrderHistoryEvent(order);
 		mapper.updateOrderHistory(eventPayload,sagaEvent);
 		eventPayload.setEventType(type);
-		EventProducerWrapper<OrderHistoryEvent> eventWrapper = new EventProducerWrapper<>(OrderConstants.ORDER_HISTORY_INFO, eventPayload);
-		eventSupplier.delegateToSupplier(eventWrapper);
+		sendTo(OrderConstants.ORDER_HISTORY_INFO, eventPayload);
 	}
 
 	private void sendOrderItemCheckEvent(Order order,EventType type){
@@ -144,9 +133,6 @@ public class OrderSagaOrchestrator {
 		OrderCheckAddressEvent eventPayload = mapper.toCheckAddressEvent(order);
 		eventPayload.setEventType(EventType.SAGA_CONTINUE);
 		sendTo(OrderConstants.ORDER_CHECK_ADDRESS, eventPayload);
-
-		EventProducerWrapper<OrderCheckAddressEvent> eventWrapper = new EventProducerWrapper<>(OrderConstants.ORDER_CHECK_ADDRESS, eventPayload);
-		eventSupplier.delegateToSupplier(eventWrapper);
 	}
 
 
@@ -163,6 +149,9 @@ public class OrderSagaOrchestrator {
 		sendTo(OrderConstants.ORDER_UNLOCK_DELIVERY, eventPayload);
 	}
 
+	
+	
+	
 	private void sendTo(String topic ,EventPayload payload) {
 		EventProducerWrapper<?> eventWrapper = new EventProducerWrapper<>(topic, payload);
 		eventSupplier.delegateToSupplier(eventWrapper);

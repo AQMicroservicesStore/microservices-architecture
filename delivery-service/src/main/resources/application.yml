@@ -1,0 +1,77 @@
+server:
+  servlet:
+    context-path: /${spring.application.name}
+  port: ${DELIVERY_SERVICE_PORT:7055}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 100
+      min-spare: 10
+
+db:
+  username: ${DB_DELIVERY_USERNAME:aqstore_delivery}
+  password: ${DB_DELIVERY_USERNAME:aqstore_delivery}
+  port: ${DB_DELIVERY_PORT:5434}
+  host: ${DB_DELIVERY_HOST:localhost}
+  schema: ${DB_DELIVERY_SCHEMA:aqstore_delivery}
+  endpoint: postgresql://${db.host}:${db.port}/${db.schema}
+
+
+logging:
+  level:
+    root: INFO
+#    kafka.*: WARN
+#    org.springframework.*: INFO
+#    org.neo4j.*: INFO
+#    org.apache.kafka.*: WARN
+#    
+
+spring:
+  application:
+    name: delivery-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+           issuer-uri: http://localhost:8090/auth/realms/aqstore-spring-realm
+    
+  datasource:
+    username: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    hikari:
+      pool-name: db_delivery_pool
+      connection-timeout: 5000
+      maximum-pool-size: 10     
+  flyway:
+    user: ${db.username}
+    password: ${db.password}
+    url: jdbc:${db.endpoint}
+    locations: "classpath:/db/migration"
+    
+    
+  cloud:
+    stream:
+      function: 
+        definition: deliveryConsumer;
+        
+      source: orderSagaProducer ##saga producers
+      bindings:
+        orderSagaProducer-out-0:  ##spring naming convention -> sourceName-
+          destination: order.saga
+          producer:
+            auto-startup: false
+        deliveryConsumer-in-0:
+          destination: order.delivery
+          group: deliveryGroup
+
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USERNAME:admin}
+    password: ${RABBIT_PASSWORD:admin}
+    connection-timeout: 15s

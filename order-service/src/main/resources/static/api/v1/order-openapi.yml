@@ -147,6 +147,8 @@ components:
             $ref: '#/components/schemas/id_int64Unsigned'
         quantity:
             $ref: '#/components/schemas/int16Unsigned'
+        inStock:
+            type: boolean
       required:
         - itemId
         - quantity     
@@ -189,6 +191,10 @@ components:
           $ref: '#/components/schemas/id_int64Unsigned'
         deliveryId:
             $ref: '#/components/schemas/id_int64Unsigned'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
       required:
         - idOrder
         - status

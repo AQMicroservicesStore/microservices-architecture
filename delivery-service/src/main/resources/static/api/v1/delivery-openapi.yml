@@ -1,0 +1,278 @@
+openapi: "3.0.2"
+info:
+  title: Delivery Service
+  description: A service to handle the order delivery
+  version: 1.0.0
+  contact:
+    name: API SUPPORT
+    email: apisupport@example.com
+  license:
+    name: MIT License
+    url: https://mit-license.org/
+
+servers:
+- url: http://{basepath}:{port}/delivery-service/api/v1
+  description: Internal Microservices Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '7055'
+      default: '7055'
+- url: http://{basepath}:{port}/{prefix}/delivery/api/v1
+  description: Gateway Api Server
+  variables:
+    basepath:
+      default: localhost
+    port:
+      enum:
+        - '9000'
+      default: '9000'
+    prefix:
+      enum:
+        - public
+        - private
+      default: private
+
+
+
+
+components:
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    GenericError:
+      description: Generic Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    id_int64Unsigned:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 9223372036854775807
+      readOnly: true
+    floatPrice:
+      description: price in float
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1000
+    timestamp:
+      type: string
+      format: date-time
+      example: "2021-01-30T08:30:00Z"
+    safetextName:
+      description: Safe text for Name
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 50
+    safetextMessages:
+      description: Safe text for Description
+      type: string
+      pattern: '^[a-zA-Z0-9 .-]+$'
+      minLength: 3
+      maxLength: 100
+    Error:
+      type: object
+      additionalProperties: false
+      description: Error Details
+      properties:
+        errorCode:
+          type: string
+          pattern: '^[a-zA-Z0-9]{4}$'
+          minLength: 4
+          maxLength: 4
+        errors:
+          type: array
+          items:
+              $ref: '#/components/schemas/safetextMessages'
+        datetime:
+          $ref: '#/components/schemas/timestamp'
+      required:
+        - errorCode
+        - errors
+        - datetime
+      example:
+        code: WS01
+        errors: 
+            - Generic Error
+        datetime: "2021-01-30T08:30:00Z"
+    DeliveryStatus:
+      type: string
+      description: Type of a book
+      enum:
+        - WAIT_TO_SEND
+        - SEND
+        - LOST
+        - ARRIVED
+    Delivery:
+      type: object
+      additionalProperties: false
+      description: Delivery Details
+      properties:
+        deliveryId:
+          $ref: '#/components/schemas/id_int64Unsigned'
+        idOrder:
+          $ref: '#/components/schemas/id_int64Unsigned'
+        userId:
+          $ref: '#/components/schemas/safetextMessages'
+        deliveryAddress:
+          $ref: '#/components/schemas/safetextMessages'
+        shippingDate:
+          $ref: '#/components/schemas/timestamp'
+        deliveryDate:
+          $ref: '#/components/schemas/timestamp'
+        status:
+          $ref: '#/components/schemas/DeliveryStatus'
+      required:
+        - idOrder
+        - deliveryDate
+      example:
+        idOrder: 2
+        deliveryDate: "2021-01-30T08:30:00Z"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security: 
+  - BearerAuth: []
+
+paths:
+  /delivery/{orderId}:
+    get:
+      operationId: getDeliveryOrderStatus
+      summary: get Delivery Order Status
+      tags:
+          - Delivery
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: the identify of the order
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned' 
+      responses:
+        200:
+          description: A delivery confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delivery"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+  /delivery/{orderId}/sended:
+    post:
+      operationId: updateDeliveryToSendStatus
+      summary: updated Delivery Order Status
+      tags:
+          - Delivery
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: the identify of the order
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned' 
+      responses:
+        200:
+          description: A delivery details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delivery"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+  /delivery/{orderId}/delivered:
+    post:
+      operationId: updateDeliveryToArrivedStatus
+      summary: updated Delivery Order Status
+      tags:
+          - Delivery
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: the identify of the order
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned' 
+      responses:
+        200:
+          description: A delivery details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delivery"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+  /delivery/{orderId}/lost:
+    post:
+      operationId: updateDeliveryToLostStatus
+      summary: updated Delivery Order Status
+      tags:
+          - Delivery
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: the identify of the order
+          schema:
+            $ref: '#/components/schemas/id_int64Unsigned' 
+      responses:
+        200:
+          description: A delivery details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delivery"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/GenericError'
+
+

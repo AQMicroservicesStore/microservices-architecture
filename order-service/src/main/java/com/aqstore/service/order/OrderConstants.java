@@ -10,4 +10,7 @@ public class OrderConstants {
 	public final static String ORDER_HISTORY_INFO="orderHistoryInfo-out-0";
 
 	
+	public final static String EVENT_TASK_EXECUTOR ="OEventAsyncExecutor";
+
+	
 }

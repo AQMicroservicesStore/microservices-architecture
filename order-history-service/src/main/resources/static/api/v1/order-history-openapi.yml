@@ -196,8 +196,13 @@ components:
           $ref: '#/components/schemas/safetextName'
         quantity:
             $ref: '#/components/schemas/int16Unsigned'
-        price:
+        priceToUnit:
           $ref: '#/components/schemas/floatPrice'
+        weightToUnit:
+          $ref: '#/components/schemas/int16Unsigned'
+        available:
+          type: boolean
+
     DeliveryAddress:
       type: object
       additionalProperties: false

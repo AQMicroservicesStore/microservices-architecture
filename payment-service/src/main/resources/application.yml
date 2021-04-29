@@ -62,6 +62,8 @@ spring:
       bindings:
         orderSagaProducer-out-0:  ##spring naming convention -> sourceName-
           destination: order.saga
+          producer:
+            auto-startup: false
         paymentConsumer-in-0:
           destination: order.payment
           group: paymentGroup

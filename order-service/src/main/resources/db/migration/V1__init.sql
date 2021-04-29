@@ -17,7 +17,8 @@ CREATE TABLE purchase_order (
 
 
 CREATE TABLE purchase_item (
-      item_id             bigint PRIMARY KEY NOT NULL,
+      id                  BIGSERIAL PRIMARY KEY NOT NULL,
+      item_id             bigint NOT NULL,
       purchase_order      bigint references purchase_order (id_order),
       quantity	        integer NOT NULL,
       in_stock            boolean NOT NULL

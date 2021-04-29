@@ -20,8 +20,6 @@ logging:
     root: INFO
 
 spring:
-  profiles:
-    active: dev
   application:
     name: order-history-service
   lifecycle:
@@ -49,23 +47,3 @@ spring:
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
     connection-timeout: 15s
----
-spring:
-  config:
-    activate:
-      on-profile: dev  
----
-spring:
-  config:
-    activate:
-      on-profile: docker
----
-spring:
-  config:
-    activate:
-      on-profile: test
----
-spring:
-  config:
-    activate:
-      on-profile: kubernetes

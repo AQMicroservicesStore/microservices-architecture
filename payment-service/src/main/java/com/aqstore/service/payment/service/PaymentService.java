@@ -4,8 +4,11 @@ import com.aqstore.service.openapi.model.ApiPaymentDto;
 
 public interface PaymentService {
 
-	ApiPaymentDto updatePaymentStatus(ApiPaymentDto apiPaymentDto);
 
 	ApiPaymentDto findByOrderId(Long orderId);
+
+	ApiPaymentDto rejectPaymentOrder(Long orderId);
+
+	ApiPaymentDto confirmPaymentOrder(Long orderId);
 
 }

@@ -56,21 +56,23 @@ spring:
   cloud:
     stream:
       function: 
-        definition: orderCheckItems;
+        definition: orderCheckItemsConsumer;
         
-      source: productProducer ##cqrs producers
+      source: productProducer; orderSagaProducer ##cqrs producers
       bindings:
         productProducer-out-0:  ##spring naming convention -> sourceName-
           destination: products
           producer:
-            auto-startup: true
+            auto-startup: false
             required-groups: catalogsGroup
-        orderCheckItems-in-0:
+        orderCheckItemsConsumer-in-0:
           destination: order.items
           group: warehouseGroup
-        orderCheckItems-out-0:
+        orderSagaProducer-out-0:
           destination: order.saga
- 
+          producer:
+            auto-startup: false
+
  
   rabbitmq:
     host: ${RABBIT_HOST:localhost}

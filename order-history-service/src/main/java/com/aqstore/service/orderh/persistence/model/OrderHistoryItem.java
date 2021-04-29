@@ -15,7 +15,9 @@ public class OrderHistoryItem {
 	  private Long id;
 	  private String name;
 	  private Integer quantity;
-	  private Float price;
+	  private Float priceToUnit;
+	  private Integer weightToUnit;
+	  private boolean available;
 	
 	
 }

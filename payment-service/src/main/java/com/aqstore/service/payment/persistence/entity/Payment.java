@@ -21,12 +21,13 @@ public class Payment extends Auditable{
 	private Long paymentId;
 	private Long idOrder;
 	private String transactionCode;
+	private Long  transactionDate;
 	private Float orderPrice;
 	private String userId;
 	private boolean  accepted;
 	private boolean  refunded;
+	private String  refundedDescription;
 	private Long  refundedDate;
-	private Long  confirmedDate;
 
 
 	

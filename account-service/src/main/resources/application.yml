@@ -56,14 +56,16 @@ spring:
   cloud:
     stream:
       function: 
-        definition: orderCheckAddress;
+        definition: orderCheckAddressConsumer;
+      source: orderSagaProducer ##cqrs producers
       bindings:
-        orderCheckAddress-in-0:
+        orderCheckAddressConsumer-in-0:
           destination: order.address
           group: accountGroup
-        orderCheckAddress-out-0:
+        orderSagaProducer-out-0:
           destination: order.saga
-          
+          producer:
+            auto-startup: false
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}

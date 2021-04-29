@@ -9,7 +9,7 @@ import com.aqstore.service.exception.AQStoreExceptionHandler;
 import com.aqstore.service.openapi.model.ApiOrderRequestDto;
 import com.aqstore.service.openapi.model.ApiOrderResponseDto;
 import com.aqstore.service.order.OrderExceptionType;
-import com.aqstore.service.order.event.OrderSagaOrchestrator;
+import com.aqstore.service.order.event.OrderSagaOrchestratorHandler;
 import com.aqstore.service.order.mapper.OrderMapper;
 import com.aqstore.service.order.persistence.OrderRepository;
 import com.aqstore.service.order.persistence.entity.Order;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderServiceImpl implements OrderService{
 	private final OrderRepository orderRepository;
 	private final OrderMapper mapper;
-	private final OrderSagaOrchestrator sagaOrchestrator;
+	private final OrderSagaOrchestratorHandler sagaOrchestrator;
 	
 	@Override
 	@Transactional

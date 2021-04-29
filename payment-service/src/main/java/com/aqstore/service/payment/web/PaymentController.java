@@ -20,12 +20,21 @@ public class PaymentController implements PaymentApi{
 	private final PaymentService paymentService;
 	
 	
+	
 	@Override
-	public ResponseEntity<ApiPaymentDto> updatePayOrder(ApiPaymentDto apiPaymentDto) {
-		ApiPaymentDto response = paymentService.updatePaymentStatus(apiPaymentDto);
+	public ResponseEntity<ApiPaymentDto> confirmPaymentOrder(Long orderId) {
+		ApiPaymentDto response = paymentService.confirmPaymentOrder(orderId);
 		return ResponseEntity.ok(response);
 	}
 	
+	
+	@Override
+	public ResponseEntity<ApiPaymentDto> rejectPaymentOrder(Long orderId) {
+		ApiPaymentDto response = paymentService.rejectPaymentOrder(orderId);
+		return ResponseEntity.ok(response);
+	}
+	
+
 	@Override
 	public ResponseEntity<ApiPaymentDto> getPayment(Long orderId) {
 		ApiPaymentDto response = paymentService.findByOrderId(orderId);
