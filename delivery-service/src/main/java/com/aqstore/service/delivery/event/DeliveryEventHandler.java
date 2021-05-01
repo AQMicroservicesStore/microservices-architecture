@@ -14,7 +14,6 @@ import com.aqstore.service.event.payload.OrderDeliveryEvent;
 import com.aqstore.service.event.payload.OrderSagaEvent;
 import com.aqstore.service.event.payload.component.CreateOrderSagaStep;
 import com.aqstore.service.exception.AQStoreExceptionHandler;
-import com.aqstore.service.exception.AbstractAQStoreException;
 import com.aqstore.service.openapi.model.ApiDeliveryStatusDto;
 
 import lombok.RequiredArgsConstructor;
@@ -57,7 +56,8 @@ public class DeliveryEventHandler {
 			deliveryRepository.save(delivery);
 		} catch (Exception e) {
 			log.error("[DeliveryConsumer] : failed to consume event with Id=[{}]", event.getEventId());
-			sendOrderSagaRollbackByException(event, AQStoreExceptionHandler.handleException(e));
+			AQStoreExceptionHandler.handleException(e);
+			sendOrderSagaRollbackByException(event);
 		}
 		
 	}
@@ -85,14 +85,14 @@ public class DeliveryEventHandler {
 	
 
 
-	private void sendOrderSagaRollbackByException( OrderDeliveryEvent event, AbstractAQStoreException e) {
-		OrderSagaEvent eventPayload = getSagaEventByException(event ,e);
+	private void sendOrderSagaRollbackByException( OrderDeliveryEvent event) {
+		OrderSagaEvent eventPayload = getSagaEventByException(event);
 		sendOrderSagaEvent(eventPayload);
 	}
 	
-	private OrderSagaEvent getSagaEventByException(OrderDeliveryEvent event, AbstractAQStoreException e) {
+	private OrderSagaEvent getSagaEventByException(OrderDeliveryEvent event) {
 		return OrderSagaEvent.builder()
-				.errorMessages(e.getMessage())
+				.errorMessages("Delivery Service - Internal Server Error")
 				.orderId(event.getOrderId())
 				.eventStepId(null)
 				.eventStepDate(null)

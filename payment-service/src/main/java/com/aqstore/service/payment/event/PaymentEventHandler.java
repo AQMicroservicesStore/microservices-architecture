@@ -55,9 +55,9 @@ public class PaymentEventHandler {
 			paymentRepository.save(payment);
 		} catch (AbstractAQStoreException e) {
 			log.error("[PaymentConsumer] : failed to consume event with Id=[{}]", event.getEventId());
-			sendOrderSagaRollbackByException(event, AQStoreExceptionHandler.handleException(e));
+			AQStoreExceptionHandler.handleException(e);
+			sendOrderSagaRollbackByException(event);
 		}
-
 	}
 
 	@Async(PaymentConstants.EVENT_TASK_EXECUTOR)
@@ -67,7 +67,8 @@ public class PaymentEventHandler {
 			paymentRepository.save(payment);
 		} catch (Exception e) {
 			log.error("[PaymentConsumer] : failed to consume event with Id=[{}]", event.getEventId());
-			sendOrderSagaRollbackByException(event, AQStoreExceptionHandler.handleException(e));
+			AQStoreExceptionHandler.handleException(e);
+			sendOrderSagaRollbackByException(event);
 		}
 		
 	}
@@ -89,14 +90,14 @@ public class PaymentEventHandler {
 				.build();
 	}
 
-	private void sendOrderSagaRollbackByException( OrderPaymentsEvent event, AbstractAQStoreException e) {
-		OrderSagaEvent eventPayload = getSagaEventByException(event ,e);
+	private void sendOrderSagaRollbackByException( OrderPaymentsEvent event) {
+		OrderSagaEvent eventPayload = getSagaEventByException(event);
 		sendOrderSagaEvent(eventPayload);
 	}
 	
-	private OrderSagaEvent getSagaEventByException(OrderPaymentsEvent event, AbstractAQStoreException e) {
+	private OrderSagaEvent getSagaEventByException(OrderPaymentsEvent event) {
 		return OrderSagaEvent.builder()
-				.errorMessages(e.getMessage())
+				.errorMessages("Payment Service - Internal Server Error")
 				.orderId(event.getOrderId())
 				.eventStepId(null)
 				.eventStepDate(null)

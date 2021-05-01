@@ -42,6 +42,14 @@ spring:
            - SaveSession
            - RewritePath= /public/delivery(?<segment>/?.*), /delivery-service$\{segment}         
            - RemoveRequestHeader=Cookie
+        - id: order-history-service-public
+          uri: http://127.0.0.1:7040
+          predicates:
+            - Path=/public/history-order/**      
+          filters:
+           - SaveSession
+           - RewritePath= /public/history-order(?<segment>/?.*), /order-history-service$\{segment}         
+           - RemoveRequestHeader=Cookie     
         - id: order-service-public
           uri: http://127.0.0.1:7030
           predicates:
@@ -58,14 +66,6 @@ spring:
            - SaveSession
            - RewritePath= /public/payment(?<segment>/?.*), /payment-service$\{segment}         
            - RemoveRequestHeader=Cookie
-        - id: order-history-service-public
-          uri: http://127.0.0.1:7040
-          predicates:
-            - Path=/public/order-history/**      
-          filters:
-           - SaveSession
-           - RewritePath= /public/order-history(?<segment>/?.*), /order-history-service$\{segment}         
-           - RemoveRequestHeader=Cookie
         - id: warehouse-service-public
           uri: http://127.0.0.1:7000
           predicates:
@@ -74,7 +74,6 @@ spring:
            - SaveSession
            - RewritePath= /public/warehouse(?<segment>/?.*), /warehouse-service$\{segment}         
            - RemoveRequestHeader=Cookie          
-           
         - id: account-service-private
           uri: http://127.0.0.1:7020
           predicates:
@@ -96,6 +95,14 @@ spring:
           filters:
            - RewritePath= /private/delivery(?<segment>/?.*), /delivery-service$\{segment}         
            - RemoveRequestHeader=Cookie
+        - id: order-history-service-private
+          uri: http://127.0.0.1:7040
+          predicates:
+            - Path=/private/history-order/**      
+          filters:
+           - RewritePath= /private/history-order(?<segment>/?.*), /order-history-service$\{segment}         
+           - RemoveRequestHeader=Cookie        
+    
         - id: order-service-private
           uri: http://127.0.0.1:7030
           predicates:
@@ -103,20 +110,15 @@ spring:
           filters:
            - RewritePath= /private/order(?<segment>/?.*), /order-service$\{segment}         
            - RemoveRequestHeader=Cookie
+    
         - id: payment-service-private
           uri: http://127.0.0.1:7050
           predicates:
             - Path=/private/payment/**      
           filters:
-           - RewritePath= /private/payment(?<segment>/?.*), /payment-service$\{segment}         
+           - RewritePath= /private/payment(?<segment>/?.*), /payments-service$\{segment}         
            - RemoveRequestHeader=Cookie
-        - id: order-history-service-private
-          uri: http://127.0.0.1:7040
-          predicates:
-            - Path=/private/order-history/**      
-          filters:
-           - RewritePath= /private/order-history(?<segment>/?.*), /order-history-service$\{segment}         
-           - RemoveRequestHeader=Cookie
+    
         - id: warehouse-service-private
           uri: http://127.0.0.1:7000
           predicates:
@@ -134,17 +136,6 @@ spring:
     timeout: 10m
     redis:
       namespace: library:edge
-
-#        registration:
-#          keycloak:
-#            client-id: oauth2-login
-#            client-secret: 4d8a570b-defa-4e6a-a5d2-0d46387ff776
-#            client-name: Keycloak
-#            scope: openid,profile,email,roles,role
-#        provider:
-#          keycloak:
-#            issuer-uri: http://localhost:8180/auth/realms/public-library
-
 
   security:
     oauth2:

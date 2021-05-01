@@ -18,7 +18,6 @@ import com.aqstore.service.event.payload.ProductEvent;
 import com.aqstore.service.event.payload.component.CreateOrderSagaStep;
 import com.aqstore.service.event.payload.component.EventOrderItemDTO;
 import com.aqstore.service.exception.AQStoreExceptionHandler;
-import com.aqstore.service.exception.AbstractAQStoreException;
 import com.aqstore.service.warehouse.WarehouseConstants;
 import com.aqstore.service.warehouse.mapper.ProductMapper;
 import com.aqstore.service.warehouse.persistence.ProductRepository;
@@ -75,7 +74,8 @@ public class WarehouseEventHandler {
 			sendOrderSagaEvent(sagaEvent);
 		} catch (Exception e) {
 			log.error("[OrderCheckItems] : failed to consume event with Id=[{}]", payload.getEventId());
-			sendOrderSagaRollbackByException(payload, AQStoreExceptionHandler.handleException(e));
+			AQStoreExceptionHandler.handleException(e);
+			sendOrderSagaRollbackByException(payload);
 		}
 
 	}
@@ -135,14 +135,14 @@ public class WarehouseEventHandler {
 				.orderId(payload.getOrderId()).orderItems(new ArrayList<>()).errorMessages("").build();
 	}
 	
-	private void sendOrderSagaRollbackByException( OrderCheckItemEvent event, AbstractAQStoreException e) {
-		OrderSagaEvent eventPayload = getSagaEventByException(event ,e);
+	private void sendOrderSagaRollbackByException( OrderCheckItemEvent event) {
+ 		OrderSagaEvent eventPayload = getSagaEventByException(event);
 		sendOrderSagaEvent(eventPayload);
 	}
 	
-	private OrderSagaEvent getSagaEventByException(OrderCheckItemEvent event, AbstractAQStoreException e) {
+	private OrderSagaEvent getSagaEventByException(OrderCheckItemEvent event) {
 		return OrderSagaEvent.builder()
-				.errorMessages(e.getMessage())
+				.errorMessages("Warehouse - Internal Server Error")
 				.orderId(event.getOrderId())
 				.eventStepId(null)
 				.eventStepDate(null)
@@ -154,22 +154,3 @@ public class WarehouseEventHandler {
 	
 	
 }
-
-/*
- * SAGA 1) send event to availability products and wait . update orderHistory
- * ----> createOrder -our 2) send event to check userAddress and wait . update
- * orderHistory ----> orderCheckAddress - in - out 3) sendEvent to unlock
- * payments . update orderHistory ----> orderUnlockPayments - in-out 4) wait
- * paymentResponse . unlock deliveryService . updateOrderHistory 5) wait
- * deliveryConfirmed . updateOrderHistory. 6) wait deliveryArrived .
- * updateOrderHistory; --> handle user address Missing --> handle availability
- * products --> handle payment refused --> handle shipping lost -> refund
- * payment
- * 
- */
-
-// #  ->   
-// source = #createorder - updateOrderHistory 
-// processor = # orderCheckAddress -> orderUnlockPayment -> orderUnlockDeliveryService ->
-// consumer
-// consumer = deliveryConsumer

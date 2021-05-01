@@ -17,7 +17,6 @@ import com.aqstore.service.event.payload.OrderSagaEvent;
 import com.aqstore.service.event.payload.component.CreateOrderSagaStep;
 import com.aqstore.service.event.payload.component.EventUserAddressDTO;
 import com.aqstore.service.exception.AQStoreExceptionHandler;
-import com.aqstore.service.exception.AbstractAQStoreException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +50,8 @@ public class AccountEventHandler {
 			sendOrderSagaEvent(sagaEvent);
 		}catch (Exception e) {
 			log.error("[OrderCheckAddress] : failed to consume event with Id=[{}]", payload.getEventId());
-			sendOrderSagaRollbackByException(payload, AQStoreExceptionHandler.handleException(e));
+			AQStoreExceptionHandler.handleException(e);
+			sendOrderSagaRollbackByException(payload);
 		}
 		
 	}
@@ -65,14 +65,14 @@ public class AccountEventHandler {
 	
 	
 	
-	private void sendOrderSagaRollbackByException( OrderCheckAddressEvent event, AbstractAQStoreException e) {
-		OrderSagaEvent eventPayload = getSagaEventByException(event ,e);
+	private void sendOrderSagaRollbackByException( OrderCheckAddressEvent event) {
+		OrderSagaEvent eventPayload = getSagaEventByException(event);
 		sendOrderSagaEvent(eventPayload);
 	}
 	
-	private OrderSagaEvent getSagaEventByException(OrderCheckAddressEvent event, AbstractAQStoreException e) {
+	private OrderSagaEvent getSagaEventByException(OrderCheckAddressEvent event) {
 		return OrderSagaEvent.builder()
-				.errorMessages(e.getMessage())
+				.errorMessages("Account Service - Internal Server Error")
 				.orderId(event.getOrderId())
 				.eventStepId(null)
 				.eventStepDate(null)
